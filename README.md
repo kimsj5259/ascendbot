@@ -11,4 +11,4 @@
 
 ## Terraform을 이용한 배포
 
-## git action을 이용한 CICD
+## Terraform Cloud를 이용한 CI /CD
