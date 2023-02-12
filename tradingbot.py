@@ -114,7 +114,7 @@ async def main():
                 else: # Just in case if stma = ltma (almost impossible)
                     pass
 
-    # await client.close_connection()
+        # await client.close_connection()
 
 if __name__ == "__main__":
     start_http_server(8000)
