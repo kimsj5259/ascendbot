@@ -15,6 +15,11 @@ provider "aws" {
   secret_key = var.secret_key
 }
 
+resource "tls_private_key" "ascend" {
+  algorithm = "RSA"
+  rsa_bits = 4096
+}
+
 resource "aws_instance" "example" {
   ami           = "ami-0454bb2fefc7de534"
   instance_type = "t2.micro"
@@ -27,7 +32,7 @@ resource "aws_instance" "example" {
     host     = self.public_ip
     type     = "ssh"
     user     = "ec2-user"
-    private_key = file("~/.ssh/known_hosts")
+    private_key = tls_private_key.ascend
   }
 
   provisioner "file" {
@@ -42,6 +47,7 @@ resource "aws_instance" "example" {
     ]
   }
 }
+
 
 # resource "aws_security_group" "instance" {
 # 	name = "terraform-example"
