@@ -27,11 +27,11 @@ resource "aws_instance" "example" {
     host     = self.public_ip
     type     = "ssh"
     user     = "ec2-user"
-    private_key = file("~/.ssh/id_rsa")
+    private_key = file("~/.ssh/known_hosts")
   }
 
   provisioner "file" {
-    source      = "jin/ascend/tradingbot.py"
+    source      = "ascendbot/tradingbot.py"
     destination = "/home/ec2-user/tradingbot.py"
   }
 
