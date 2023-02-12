@@ -5,8 +5,8 @@ from prometheus_client import start_http_server, Counter, Summary, Gauge, Histog
 
 
 kline_counter = Counter("KLINE", "Number of times the data has been received so far")
-LTMA_counter = Gauge("LTMA", "amount of calculated LTMA")
-STMA_counter = Gauge("STMA", "amount of calculated STMA")
+LTMA_amount = Gauge("LTMA", "amount of calculated LTMA")
+STMA_amount = Gauge("STMA", "amount of calculated STMA")
 buy_counter = Counter("BUY", "Number of times for buying")
 sell_counter = Counter("SELL", "Number of times for selling")
 
@@ -92,12 +92,12 @@ async def main():
                 sum_for_lt = sum(close_price_list)
                 ltma = calculate_moving_average(long_term_window, sum_for_lt)
                 print(f"LTMA is {ltma}")
-                LTMA_counter.set(ltma)
+                LTMA_amount.set(ltma)
 
                 sum_for_st = sum(close_price_list[short_term_window:]) # sum for STMA
                 stma = calculate_moving_average(short_term_window, sum_for_st)
                 print(f"STMA is {stma}")
-                STMA_counter.set(stma)
+                STMA_amount.set(stma)
                 
                 del close_price_list[0] # 키포인트: 맨앞 인덱스 벨류 제거, 다음 받아올 kline으로 새로운 list를 만들기 위함
 
