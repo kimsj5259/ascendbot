@@ -1,4 +1,4 @@
-import asyncio, requests, json, time
+import asyncio, requests, json, time, settings
 import hmac, hashlib
 from binance import AsyncClient, BinanceSocketManager
 from prometheus_client import start_http_server, Counter, Summary, Gauge, Histogram
@@ -32,8 +32,8 @@ async def main():
             url = "https://testnet.binance.vision/api/v3/order"
 
             # Define the API key and secret
-            api_key = "Xb8usz6gjCRsSpNtdJqjq6xLBpEs5TxJXKDdoCWWVnGVQRVfwHRUQe97n5fHiGzc"
-            secret_key = "3yfTfXZnUW7RggAGfAEr5ZXYGb0YSMngXmHAuJD8T17JzwAfWJ9yn3P85IjeTR7j"
+            api_key = settings.APITKEY
+            secret_key = settings.SECRETKEY
 
             # Define the request payload
             payload = {
