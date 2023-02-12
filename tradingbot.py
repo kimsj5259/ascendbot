@@ -32,17 +32,17 @@ async def main():
             url = "https://testnet.binance.vision/api/v3/order"
 
             # Define the API key and secret
-            api_key = settings.APITKEY
+            api_key = settings.APIKEY
             secret_key = settings.SECRETKEY
 
             # Define the request payload
             payload = {
-                "symbol": symbol, #"BTCUSDT",
-                "side": side, #"BUY",
+                "symbol": symbol,
+                "side": side,
                 "type": "LIMIT",
                 "timeInForce": "GTC",
-                "quantity": quantity, #"0.5",
-                "price": price, #"1000",
+                "quantity": quantity, 
+                "price": price,
                 "recvWindow": 5000,
                 "timestamp": int(time.time() * 1000)
             }
