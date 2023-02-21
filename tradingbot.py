@@ -1,17 +1,16 @@
 import asyncio, requests, json, time, settings
 import hmac, hashlib
 from binance import AsyncClient, BinanceSocketManager
-from prometheus_client import start_http_server, Counter, Summary, Gauge, Histogram
+from prometheus_client import start_http_server, Counter, Gauge
 
 
-kline_counter = Counter("KLINE", "Number of times the data has been received so far")
-LTMA_amount = Gauge("LTMA", "amount of calculated LTMA")
-STMA_amount = Gauge("STMA", "amount of calculated STMA")
+kline_counter = Counter("KLINE", "total number of transaction has been made")
+LTMA_calculated = Gauge("LTMA", "amount of calculated LTMA")
+STMA_calculated = Gauge("STMA", "amount of calculated STMA")
 buy_counter = Counter("BUY", "Number of times for buying")
 sell_counter = Counter("SELL", "Number of times for selling")
 
 async def main():
-
     client = await AsyncClient.create(testnet='wss://testnet.binance.vision/')
     bm = BinanceSocketManager(client)
 
@@ -20,29 +19,23 @@ async def main():
     ts = bm.kline_socket(symbol)
 
     async with ts as tscm:
-        kline_count = 0
-
-        # calculate simple moving average so far
-        def calculate_moving_average(window, sum_of_so_far):
-            sma = sum_of_so_far / window
-            return sma
-        
+        # place order logic
         def place_order(symbol, side, quantity, price):
             # Define the endpoint URL
             url = "https://testnet.binance.vision/api/v3/order"
 
             # Define the API key and secret
-            api_key = settings.APIKEY
-            secret_key = settings.SECRETKEY
+            api_key = settings.API_KEY
+            secret_key = settings.SECRET_KEY
 
             # Define the request payload
             payload = {
-                "symbol": symbol,
-                "side": side,
+                "symbol": symbol, #"BTCUSDT",
+                "side": side, #"BUY",
                 "type": "LIMIT",
                 "timeInForce": "GTC",
-                "quantity": quantity, 
-                "price": price,
+                "quantity": quantity, #"0.5",
+                "price": price, #"1000",
                 "recvWindow": 5000,
                 "timestamp": int(time.time() * 1000)
             }
@@ -75,49 +68,45 @@ async def main():
 
         close_price_list = []   #Latest LTMA and STMA are included
 
-        while True: #kline_count < 9: # the number determines the many MA you want to set up
+        while len(close_price_list) < 121: # 리스트가 120개를 넘어갈때, 기존 기준 MA120을 넘어가기 때문에.
             res = await tscm.recv()
             close_price = float(res['k']['c'])
-            kline_count += 1
-            print("====================================")
-            print(f"current kline count num is {kline_count}")
-            kline_counter.inc()
-            close_price_list.append(close_price)        # 최신 close price를 리스트에 가장 뒤에 추가
-            # print(f"current list is {close_price_list}") # 데이터 로깅을 위한 프린팅 
+            kline_counter.inc() 
+            is_kline_closed = res['k']['x']
+            
+            if is_kline_closed is True:
+                close_price_list.append(close_price)    # 최신 close price를 리스트에 가장 뒤에 추가
+                print(f"current list is {close_price_list}") # 데이터 로깅을 위한 프린팅 
 
-            short_term_window = 10   # stma 기준값 
-            long_term_window = 20   # ltma 기준값
+                if len(close_price_list) > 3: # 20부터 축적된 데이터로 ltma&stma계산 가능
+                    ltma = sum(close_price_list) / len(close_price_list)
+                    print(f"ltma count is {len(close_price_list)}")
+                    LTMA_calculated.set(ltma) # monitoring LTMA
+                    print(f"LTMA is {ltma}")
 
-            if kline_count >= long_term_window:
-                sum_for_lt = sum(close_price_list)
-                ltma = calculate_moving_average(long_term_window, sum_for_lt)
-                print(f"LTMA is {ltma}")
-                LTMA_amount.set(ltma)
+                    stma = sum(close_price_list[2:]) / len(close_price_list[2:])
+                    STMA_calculated.set(stma) # monitoring STMA
+                    print(f"ltma count is {len(close_price_list[2:])}")
+                    print(f"STMA is {stma}")
+                    
+                    buying_amount = 0.001   # amount depends on your own risk tolerance
+                    selling_amount = 0.001  
 
-                sum_for_st = sum(close_price_list[short_term_window:]) # sum for STMA
-                stma = calculate_moving_average(short_term_window, sum_for_st)
-                print(f"STMA is {stma}")
-                STMA_amount.set(stma)
-                
-                del close_price_list[0] # 키포인트: 맨앞 인덱스 벨류 제거, 다음 받아올 kline으로 새로운 list를 만들기 위함
+                    # 매수&매도 판단 로직:
+                    if stma > ltma:
+                        print(f"STMA is greater than LTMA, BUY signal!")
+                        place_order(symbol, 'BUY', buying_amount, close_price)
+                    elif stma < ltma:
+                        print(f"STMA is less than LTMA, SELL signal!")
+                        place_order(symbol, 'SELL', selling_amount, close_price)
+                    else: # Just in case if stma = ltma (almost impossible)
+                        pass
 
-                buying_amount = 0.001   # amount depends on your own risk tolerance
-                selling_amount = 0.001  
-
-                # 매수&매도 판단 로직:
-                if stma > ltma:
-                    print(f"STMA is greater than LTMA, BUY signal!")
-                    place_order(symbol, 'BUY', buying_amount, close_price)
-                elif stma < ltma:
-                    print(f"STMA is less than LTMA, SELL signal!")
-                    place_order(symbol, 'SELL', selling_amount, close_price)
-                else: # Just in case if stma = ltma (almost impossible)
-                    pass
-
-        # await client.close_connection()
+        await client.close_connection()
+        print("It is now above max MA120, close the connection!")
 
 if __name__ == "__main__":
-    start_http_server(8000)
+    start_http_server(8000) # Prometheus monitoring port
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
 
