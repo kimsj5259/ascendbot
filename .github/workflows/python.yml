@@ -22,7 +22,7 @@ jobs:
       with:
         host: ${{ secrets.HOSTNAME }}
         username: ${{ secrets.USERNAME  }}
-        key: ${{ secrets.PRIVATE_KEY }}
+        key: ${{ secrets.AWS_PRIVATE_KEY }}
 
         script: |
           cd /home/ubuntu/ascendbot &&
