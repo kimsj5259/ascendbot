@@ -10,5 +10,6 @@
 5. sell_counter = 매도 횟수
 
 ## Terraform을 이용한 배포
-
-## Terraform Cloud를 이용한 CI /CD
+ - EC2 instance .tf 파일을 이용하여 생성
+## github action을 이용한 CI /CD
+ - push와 같은 동작으로 repository에 수정사항이 반영될때, ec2 접근 및 deploy
