@@ -67,6 +67,7 @@ async def main():
                 # print("Request failed with status code:", response.status_code, response.text)
 
         close_price_list = []   #Latest LTMA and STMA are included
+        print("==========Started==========")
 
         while len(close_price_list) < 121: # 리스트가 120개를 넘어갈때, 기존 기준 MA120을 넘어가기 때문에.
             res = await tscm.recv()
