@@ -79,15 +79,15 @@ async def main():
                 close_price_list.append(close_price)    # 최신 close price를 리스트에 가장 뒤에 추가
                 print(f"current list is {close_price_list}") # 데이터 로깅을 위한 프린팅 
 
-                if len(close_price_list) > 3: # 20부터 축적된 데이터로 ltma&stma계산 가능.
+                if len(close_price_list) > 19: # 20부터 축적된 데이터로 ltma&stma계산 가능.
                     ltma = sum(close_price_list) / len(close_price_list)
                     print(f"ltma count is {len(close_price_list)}")
                     LTMA_calculated.set(ltma) # monitoring LTMA
                     print(f"LTMA is {ltma}")
 
-                    stma = sum(close_price_list[2:]) / len(close_price_list[2:])
+                    stma = sum(close_price_list[10:]) / len(close_price_list[10:])
                     STMA_calculated.set(stma) # monitoring STMA
-                    print(f"ltma count is {len(close_price_list[2:])}")
+                    print(f"ltma count is {len(close_price_list[10:])}")
                     print(f"STMA is {stma}")
                     
                     buying_amount = 0.001   # amount depends on your own risk tolerance
