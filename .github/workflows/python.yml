@@ -28,8 +28,8 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: SSH into EC2 instance and run Python script
-        run:
-            cd /ascendbot
+        run: |
+            cd ascendbot/
             git pull
             python -m pip install --upgrade pip
             pip install -r requirements.txt
