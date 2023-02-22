@@ -40,7 +40,7 @@ async def main():
                 "timestamp": int(time.time() * 1000)
             }
 
-            # Create the signature for the request
+            # Create the signature for the request.
             query_string = '&'.join([f'{key}={value}' for key, value in payload.items()])
             signature = hmac.new(secret_key.encode('utf-8'), query_string.encode('utf-8'), hashlib.sha256).hexdigest()
             query_string = query_string + '&signature=' + signature
