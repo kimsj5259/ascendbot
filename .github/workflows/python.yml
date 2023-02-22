@@ -28,12 +28,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: SSH into EC2 instance and run Python script
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_INSTANCE_IP }}
-          username: ${{ secrets.EC2_INSTANCE_USERNAME }}
-          key: ${{ secrets.EC2_INSTANCE_KEY }}
-          script: |
+        run:
             cd /ascendbot
             git pull
             python -m pip install --upgrade pip
