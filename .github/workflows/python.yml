@@ -11,22 +11,29 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v2 
-      - name: Deploy in EC2
-        env:
-            PRIVATE_KEY: ${{ secrets.AWS_PRIVATE_KEY  }}
-            HOSTNAME : ${{ secrets.HOSTNAME  }}
-            USERNAME : ${{ secrets.USERNAME  }}
-            
-        run: |
-          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key ${{env.USERNAME}}@${{env.HOSTNAME}} '
-          
-            cd /home/ubuntu/ascendbot &&
-            git pull origin master &&
-            python -m pip install --upgrade pip &&
-            pip install -r requirements.txt &&
-            python3 tradingbot.py &&
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: python -m pip install --upgrade pip
+
+    - name: Connect to EC2 instance
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOSTNAME }}
+        username: ${{ secrets.USERNAME  }}
+        key: ${{ secrets.PRIVATE_KEY }}
+
+        script: |
+          cd /home/ubuntu/ascendbot &&
+          git pull origin master &&
+          pip install -r requirements.txt &&
+          python3 tradingbot.py &&
+
+
+
+
+
 
              
 
